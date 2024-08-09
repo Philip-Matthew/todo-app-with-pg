@@ -6,11 +6,10 @@ const app = express();
 
 // Database connection (optional: use this only if connecting to a database)
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "todoapp",
-  password: "26102004",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 // Serve static files from the "public" directory
