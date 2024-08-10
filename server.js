@@ -5,11 +5,19 @@ const path = require("path"); // Required to work with file paths
 const app = express();
 
 // Database connection (optional: use this only if connecting to a database)
+// const isProduction = process.env.NODE_ENV === "production";
+
+// const pool = new Pool({
+//   connectionString: process.env.DATABASE_URL,
+//   ssl: isProduction ? { rejectUnauthorized: false } : false,
+// });
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  user: "postgres",
+  host: "localhost",
+  database: "todoapp",
+  password: "26102004",
+  port: 5432,
 });
 
 // Serve static files from the "public" directory
