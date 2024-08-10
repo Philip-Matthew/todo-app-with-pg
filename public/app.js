@@ -7,7 +7,24 @@ document.addEventListener("DOMContentLoaded", () => {
       tasks.forEach((task) => {
         const li = document.createElement("li");
         li.textContent = task.description;
+
+        // Create delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+
+        // for styling
+        deleteButton.classList.add("delete-button");
+
+        // Append delete button to the list item
+        li.appendChild(deleteButton);
+
+        // Append the list item to the task list
         taskList.appendChild(li);
+
+        // Add event listener for delete button
+        deleteButton.addEventListener("click", function () {
+          deleteTask(task.id, li);
+        });
       });
     });
 });
@@ -33,8 +50,44 @@ document.getElementById("addTaskButton").addEventListener("click", function () {
         const taskList = document.getElementById("taskList");
         const li = document.createElement("li");
         li.textContent = task.description;
+
+        // Create delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+
+        // for styling
+        deleteButton.classList.add("delete-button");
+
+        // Append delete button to the list item
+        li.appendChild(deleteButton);
+
+        // Append the list item to the task list
         taskList.appendChild(li);
-        taskInput.value = "";
+
+        // Add event listener for delete button
+        deleteButton.addEventListener("click", function () {
+          deleteTask(task.id, li);
+        });
+
+        taskInput.value = ""; // Clear the input field
       });
   }
 });
+
+// Function to delete a task
+function deleteTask(taskId, taskElement) {
+  fetch(`/tasks/${taskId}`, {
+    method: "DELETE",
+  })
+    .then((response) => {
+      if (response.ok) {
+        // Remove the task element from the DOM
+        taskElement.remove();
+      } else {
+        console.error("Failed to delete task");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}

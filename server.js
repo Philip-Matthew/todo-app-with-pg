@@ -37,18 +37,67 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
-// API endpoint to add a new task (example)
+// API endpoint to add a new task
 app.post("/tasks", async (req, res) => {
   const { description } = req.body;
+
   try {
+    // Insert the new task at the end (or at a specific position if required)
     const result = await pool.query(
       "INSERT INTO tasks (description) VALUES ($1) RETURNING *",
       [description]
     );
-    res.json(result.rows[0]);
+
+    // Reassign IDs to keep them sequential
+    await pool.query(`
+      WITH Renumbered AS (
+        SELECT id, ROW_NUMBER() OVER (ORDER BY id) as new_id
+        FROM tasks
+      )
+      UPDATE tasks
+      SET id = Renumbered.new_id
+      FROM Renumbered
+      WHERE tasks.id = Renumbered.id;
+    `);
+
+    // Retrieve the newly added task with the updated ID
+    const updatedTask = await pool.query(
+      "SELECT * FROM tasks WHERE description = $1 ORDER BY id DESC LIMIT 1",
+      [description]
+    );
+
+    res.json(updatedTask.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
+  }
+});
+
+app.delete("/tasks/:id", async (req, res) => {
+  const taskId = req.params.id;
+
+  try {
+    // Delete the task
+    await pool.query("DELETE FROM tasks WHERE id = $1", [taskId]);
+
+    // Reassign IDs to keep them sequential
+    const result = await pool.query(`
+      WITH Renumbered AS (
+        SELECT id, ROW_NUMBER() OVER (ORDER BY id) as new_id
+        FROM tasks
+      )
+      UPDATE tasks
+      SET id = Renumbered.new_id
+      FROM Renumbered
+      WHERE tasks.id = Renumbered.id;
+    `);
+
+    res
+      .status(200)
+      .send({ message: "Task deleted and IDs reassigned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Failed to delete task and reassign IDs" });
   }
 });
 
